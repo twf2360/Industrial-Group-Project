@@ -7,7 +7,7 @@ import numpy as np
 from scipy import fftpack
 from matplotlib.colors import LogNorm
 from scipy import ndimage
-
+from scipy.signal import argrelextrema
 '''
 first, read the sample in 
 '''
@@ -33,14 +33,24 @@ Inv = contrastedSample - WhiteTophat
 
 
 '''
-take the fourier transform of the reduced noise
+take the fourier transform of each of the images, so they can be compared
 '''
 sample_FT = fftpack.fft2(scan_gs_sample)
 contrastedSample_FT = fftpack.fft2(contrastedSample)
 inv_FT = fftpack.fft2(Inv)
 
 '''
-plot the fourier transform against the original image
+use argrelextrema to find lines within the 200th row of pixels
+'''
+max_positions_sample = argrelextrema(sample_FT[200], np.greater)
+max_positions_contrast = argrelextrema(contrastedSample_FT[200], np.greater)
+max_positions_inv = argrelextrema(inv_FT[200], np.greater)
+
+
+
+
+'''
+plot the fourier transform against the original image, and then the detected lines 
 '''
 
 fig, ax = plt.subplots(ncols=3,nrows=2,figsize =(8,2.5))
@@ -72,6 +82,44 @@ ax[1][2].grid()
 
 
 plt.show()
+
+
+
+
+'''
+plot the samples with the detected lines from argrelextrema
+'''
+
+fix, ax = plt.subplots(ncols=3, nrows=2, figsize=(8,2.5))
+ax[0][0].imshow(scan_gs_sample, cmap='gray')
+ax[0][0].set(xlabel='', ylabel = '', title = 'Original Sample')
+
+ax[0][1].imshow(contrastedSample, cmap='gray')
+ax[0][1].set(xlabel='', ylabel = '', title = 'Higher Contrast Sample')
+
+ax[0][2].imshow(Inv, cmap='gray')
+ax[0][2].set(xlabel='', ylabel = '', title = 'Sample - WTH Transform')
+
+ax[1][0].imshow(scan_gs_sample,cmap='gray')
+ax[1][0].vlines(max_positions_sample,color = 'yellow', ymin=0, ymax=557, linewidth = 1)
+ax[1][0].set(xlabel='', ylabel = '', title = 'Detected Lines')
+
+
+ax[1][1].imshow(scan_gs_sample,cmap='gray')
+ax[1][1].vlines(max_positions_contrast,color = 'yellow', ymin=0, ymax=557, linewidth=1)
+ax[1][1].set(xlabel='', ylabel = '', title = 'Detected lines contrast')
+
+ax[1][2].imshow(scan_gs_sample,cmap='gray')
+ax[1][2].vlines(max_positions_inv,color = 'yellow', ymin=0, ymax=557, linewidth = 1)
+ax[1][2].set(xlabel='', ylabel = '', title = 'Detected lines WTH Transform')
+plt.show()
+ 
+
+
+
+
+
+
 
 '''
 not only does the final result have a lot of noise, it's like a fractal. everytime you cut a section out, the same pattern repeats. 
